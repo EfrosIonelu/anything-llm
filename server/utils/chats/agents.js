@@ -43,7 +43,7 @@ async function grepAgents({
       animate: false,
       error: null,
     });
-    return;
+    return false;
   }
 
   writeResponseChunk(response, {
