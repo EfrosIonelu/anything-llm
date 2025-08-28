@@ -13,7 +13,7 @@ async function grepAgents({
   thread = null,
 }) {
   let agentHandles = WorkspaceAgentInvocation.parseAgents(message);
-  if (agentHandles.length === 0) {
+  if (agentHandles.length === 0 && workspace.agentic) {
     agentHandles = ["@agent"];
   }
 

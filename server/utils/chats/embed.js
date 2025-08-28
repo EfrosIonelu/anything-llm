@@ -1,12 +1,13 @@
 const { v4: uuidv4 } = require("uuid");
 const { getVectorDbClass, getLLMProvider } = require("../helpers");
-const { chatPrompt, sourceIdentifier } = require("./index");
+const { chatPrompt, sourceIdentifier, grepCommand } = require("./index");
 const { EmbedChats } = require("../../models/embedChats");
 const {
   convertToPromptHistory,
   writeResponseChunk,
 } = require("../helpers/chat/responses");
 const { DocumentManager } = require("../DocumentManager");
+const { grepAgents } = require("./agents");
 
 async function streamChatWithForEmbed(
   response,
@@ -18,6 +19,19 @@ async function streamChatWithForEmbed(
   sessionId,
   { promptOverride, modelOverride, temperatureOverride, username }
 ) {
+  const uuid = uuidv4();
+  const workspace = embed.workspace;
+  const updatedMessage = await grepCommand(message);
+
+  // If is agent enabled chat we will exit this flow early.
+  const isAgentChat = await grepAgents({
+    uuid,
+    response,
+    message: updatedMessage,
+    workspace,
+  });
+  if (isAgentChat) return;
+
   const chatMode = embed.chat_mode;
   const chatModel = embed.allow_model_override ? modelOverride : null;
 
@@ -27,7 +41,6 @@ async function streamChatWithForEmbed(
   if (embed.allow_temperature_override)
     embed.workspace.openAiTemp = parseFloat(temperatureOverride);
 
-  const uuid = uuidv4();
   const LLMConnector = getLLMProvider({
     provider: embed?.workspace?.chatProvider,
     model: chatModel ?? embed.workspace?.chatModel,
@@ -102,7 +115,7 @@ async function streamChatWithForEmbed(
         };
 
   // Failed similarity search if it was run at all and failed.
-  if (!!vectorSearchResults.message) {
+  if (vectorSearchResults.message) {
     writeResponseChunk(response, {
       id: uuid,
       type: "abort",
@@ -198,9 +211,9 @@ async function streamChatWithForEmbed(
     connection_information: response.locals.connection
       ? {
           ...response.locals.connection,
-          username: !!username ? String(username) : null,
+          username: username ? String(username) : null,
         }
-      : { username: !!username ? String(username) : null },
+      : { username: username ? String(username) : null },
     sessionId,
   });
   return;
