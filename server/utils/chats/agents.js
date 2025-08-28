@@ -17,43 +17,18 @@ async function grepAgents({
     agentHandles = ["@agent"];
   }
 
-  if (agentHandles.length > 0) {
-    const { invocation: newInvocation } = await WorkspaceAgentInvocation.new({
-      prompt: message,
-      workspace: workspace,
-      user: user,
-      thread: thread,
-    });
+  if (agentHandles.length === 0) {
+    return false;
+  }
 
-    if (!newInvocation) {
-      writeResponseChunk(response, {
-        id: uuid,
-        type: "statusResponse",
-        textResponse: `${pluralize(
-          "Agent",
-          agentHandles.length
-        )} ${agentHandles.join(
-          ", "
-        )} could not be called. Chat will be handled as default chat.`,
-        sources: [],
-        close: true,
-        animate: false,
-        error: null,
-      });
-      return;
-    }
+  const { invocation: newInvocation } = await WorkspaceAgentInvocation.new({
+    prompt: message,
+    workspace: workspace,
+    user: user,
+    thread: thread,
+  });
 
-    writeResponseChunk(response, {
-      id: uuid,
-      type: "agentInitWebsocketConnection",
-      textResponse: null,
-      sources: [],
-      close: false,
-      error: null,
-      websocketUUID: newInvocation.uuid,
-    });
-
-    // Close HTTP stream-able chunk response method because we will swap to agents now.
+  if (!newInvocation) {
     writeResponseChunk(response, {
       id: uuid,
       type: "statusResponse",
@@ -62,16 +37,41 @@ async function grepAgents({
         agentHandles.length
       )} ${agentHandles.join(
         ", "
-      )} invoked.\nSwapping over to agent chat. Type /exit to exit agent execution loop early.`,
+      )} could not be called. Chat will be handled as default chat.`,
       sources: [],
       close: true,
+      animate: false,
       error: null,
-      animate: true,
     });
-    return true;
+    return;
   }
 
-  return false;
+  writeResponseChunk(response, {
+    id: uuid,
+    type: "agentInitWebsocketConnection",
+    textResponse: null,
+    sources: [],
+    close: false,
+    error: null,
+    websocketUUID: newInvocation.uuid,
+  });
+
+  // Close HTTP stream-able chunk response method because we will swap to agents now.
+  writeResponseChunk(response, {
+    id: uuid,
+    type: "statusResponse",
+    textResponse: `${pluralize(
+      "Agent",
+      agentHandles.length
+    )} ${agentHandles.join(
+      ", "
+    )} invoked.\nSwapping over to agent chat. Type /exit to exit agent execution loop early.`,
+    sources: [],
+    close: true,
+    error: null,
+    animate: true,
+  });
+  return true;
 }
 
 module.exports = { grepAgents };
