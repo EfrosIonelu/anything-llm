@@ -586,13 +586,13 @@ ${this.getHistory({ to: route.to })
     });
 
     // get the chat completion
-    const content = await this.handleExecution(
+    const { content, metrics, model } = await this.handleExecution(
       provider,
       messages,
       functions,
       route.from
     );
-    this.newMessage({ ...route, content });
+    this.newMessage({ ...route, content, metrics, model });
 
     return content;
   }
@@ -675,7 +675,11 @@ ${this.getHistory({ to: route.to })
       );
     }
 
-    return completion?.result;
+    return {
+      content: completion?.result,
+      metrics: completion?.metrics,
+      model: completion?.model,
+    };
   }
 
   /**

@@ -8,6 +8,8 @@ export default function WorkspaceIsAgentic({ workspace, setHasChanges }) {
   useEffect(() => {
     if (workspace?.agentic !== undefined) {
       setIsAgentic(Boolean(workspace.agentic));
+    } else {
+      setIsAgentic(false);
     }
   }, [workspace?.agentic]);
 

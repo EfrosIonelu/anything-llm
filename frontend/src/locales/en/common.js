@@ -466,6 +466,10 @@ const TRANSLATIONS = {
       prompt: "Prompt",
       response: "Response",
       at: "Sent At",
+      completion_tokens: "completion_tokens",
+      prompt_tokens: "prompt_tokens",
+      total_tokens: "total_tokens",
+      model: "model",
     },
   },
 

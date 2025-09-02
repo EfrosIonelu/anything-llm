@@ -28,6 +28,8 @@ const chatHistory = {
               await this._storeSpecial(aibitat, {
                 prompt: prev.content,
                 response: last.content,
+                metrics: last.metrics,
+                model: last.model,
                 options: aibitat._replySpecialAttributes,
               });
               delete aibitat._replySpecialAttributes;
@@ -37,11 +39,16 @@ const chatHistory = {
             await this._store(aibitat, {
               prompt: prev.content,
               response: last.content,
+              metrics: last.metrics,
+              model: last.model,
             });
           } catch {}
         });
       },
-      _store: async function (aibitat, { prompt, response } = {}) {
+      _store: async function (
+        aibitat,
+        { prompt, response, metrics, model } = {}
+      ) {
         const invocation = aibitat.handlerProps.invocation;
         await WorkspaceChats.new({
           workspaceId: Number(invocation.workspace_id),
@@ -50,6 +57,8 @@ const chatHistory = {
             text: response,
             sources: [],
             type: "chat",
+            metrics: metrics,
+            model: model,
           },
           user: { id: invocation?.user_id || null },
           threadId: invocation?.thread_id || null,
@@ -57,7 +66,7 @@ const chatHistory = {
       },
       _storeSpecial: async function (
         aibitat,
-        { prompt, response, options = {} } = {}
+        { prompt, response, metrics, options = {} } = {}
       ) {
         const invocation = aibitat.handlerProps.invocation;
         await WorkspaceChats.new({
@@ -71,6 +80,7 @@ const chatHistory = {
               ? options.storedResponse(response)
               : response,
             type: options?.saveAsType ?? "chat",
+            metrics: metrics,
           },
           user: { id: invocation?.user_id || null },
           threadId: invocation?.thread_id || null,

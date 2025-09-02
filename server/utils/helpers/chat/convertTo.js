@@ -81,8 +81,16 @@ async function prepareChatsForExport(format = "jsonl", chatType = "workspace") {
         };
       }
 
+      const metrics = responseJson?.metrics || {};
+      const completion_tokens = metrics.completion_tokens || 0;
+      const prompt_tokens = metrics.prompt_tokens || 0;
+
       return {
         ...baseData,
+        completion_tokens: completion_tokens,
+        prompt_tokens: prompt_tokens,
+        total_tokens: metrics.total_tokens || completion_tokens + prompt_tokens,
+        model: responseJson.model,
         workspace: chat.workspace ? chat.workspace.name : "unknown workspace",
         username: chat.user
           ? chat.user.username
@@ -111,6 +119,8 @@ async function prepareChatsForExport(format = "jsonl", chatType = "workspace") {
         ),
         input: chat.prompt,
         output: responseJson.text,
+        metrics: responseJson.metrics,
+        model: responseJson.model,
       };
     });
 
@@ -142,6 +152,8 @@ async function prepareChatsForExport(format = "jsonl", chatType = "workspace") {
       {
         role: "assistant",
         content: responseJson.text,
+        metrics: responseJson.metrics,
+        model: responseJson.model,
       }
     );
 

@@ -107,16 +107,19 @@ class GeminiProvider extends InheritMultiple([Provider, UnTooled]) {
               arguments: toolCall.arguments,
             },
             cost: 0,
+            metrics: {},
+            model: this.model,
           };
         }
         completion = { content: text };
       }
 
+      let response = {};
       if (!completion?.content) {
         this.providerLog(
           "Will assume chat completion without tool call inputs."
         );
-        const response = await this.client.chat.completions.create({
+        response = await this.client.chat.completions.create({
           model: this.model,
           messages: this.cleanMsgs(this.formatMessages(messages)),
         });
@@ -130,6 +133,8 @@ class GeminiProvider extends InheritMultiple([Provider, UnTooled]) {
       return {
         result: completion.content,
         cost: 0,
+        model: this.model,
+        metrics: this.transformMetrics(response?.usage || {}),
       };
     } catch (error) {
       throw new APIError(
@@ -148,6 +153,14 @@ class GeminiProvider extends InheritMultiple([Provider, UnTooled]) {
    */
   getCost(_usage) {
     return 0;
+  }
+
+  transformMetrics(usage) {
+    return {
+      prompt_tokens: usage.prompt_tokens || 0,
+      completion_tokens: usage.completion_tokens || 0,
+      total_tokens: usage.total_tokens || 0,
+    };
   }
 }
 

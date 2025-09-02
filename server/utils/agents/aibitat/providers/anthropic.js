@@ -180,6 +180,8 @@ class AnthropicProvider extends Provider {
             arguments: functionArgs,
           },
           cost: 0,
+          metrics: this.transformMetrics(response?.usage || {}),
+          model: this.model,
         };
       }
 
@@ -189,6 +191,8 @@ class AnthropicProvider extends Provider {
           completion?.text ??
           "The model failed to complete the task and return back a valid response.",
         cost: 0,
+        metrics: this.transformMetrics(response?.usage || {}),
+        model: this.model,
       };
     } catch (error) {
       // If invalid Auth error we need to abort because no amount of waiting
@@ -205,6 +209,18 @@ class AnthropicProvider extends Provider {
 
       throw error;
     }
+  }
+
+  transformMetrics(usage) {
+    const completion_tokens = usage.output_tokens || 0;
+    const prompt_tokens = usage.prompt_tokens || 0;
+    const total_tokens = completion_tokens + prompt_tokens;
+
+    return {
+      completion_tokens,
+      prompt_tokens,
+      total_tokens,
+    };
   }
 }
 

@@ -207,7 +207,13 @@ async function streamChatWithForEmbed(
   await EmbedChats.new({
     embedId: embed.id,
     prompt: message,
-    response: { text: completeText, type: chatMode, sources, metrics },
+    response: {
+      text: completeText,
+      type: chatMode,
+      sources,
+      metrics,
+      model: workspace?.chatModel,
+    },
     connection_information: response.locals.connection
       ? {
           ...response.locals.connection,

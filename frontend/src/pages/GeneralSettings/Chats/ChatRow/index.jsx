@@ -20,6 +20,45 @@ function parseText(jsonResponse = "") {
   }
 }
 
+function getMetrics(jsonResponse = "") {
+  try {
+    const json = JSON.parse(jsonResponse);
+    if (!json.metrics) {
+      throw new Error('JSON response has no property "metrics".');
+    }
+
+    const metrics = json.metrics;
+    const completion_tokens = metrics.completion_tokens || 0;
+    const prompt_tokens = metrics.prompt_tokens || 0;
+    return {
+      completion_tokens: completion_tokens,
+      prompt_tokens: prompt_tokens,
+      total_tokens: metrics.total_tokens || completion_tokens + prompt_tokens,
+    };
+  } catch (e) {
+    console.error(e);
+    return {
+      completion_tokens: 0,
+      prompt_tokens: 0,
+      total_tokens: 0,
+    };
+  }
+}
+
+function getModel(jsonResponse = ""){
+  try {
+    const json = JSON.parse(jsonResponse);
+    if (!json.model){
+      throw new Error('JSON response has no property "metrics".');
+    }
+
+    return json.model;
+  } catch (e) {
+    console.error(e);
+    return "";
+  }
+}
+
 export default function ChatRow({ chat, onDelete }) {
   const {
     isOpen: isPromptOpen,
@@ -51,6 +90,18 @@ export default function ChatRow({ chat, onDelete }) {
         </td>
         <td className="px-6 font-medium whitespace-nowrap text-white">
           {chat.user?.username}
+        </td>
+        <td className="px-6 font-medium whitespace-nowrap text-white">
+          {getModel(chat.response)}
+        </td>
+        <td className="px-6 font-medium whitespace-nowrap text-white">
+          {getMetrics(chat.response).completion_tokens}
+        </td>
+        <td className="px-6 font-medium whitespace-nowrap text-white">
+          {getMetrics(chat.response).prompt_tokens}
+        </td>
+        <td className="px-6 font-medium whitespace-nowrap text-white">
+          {getMetrics(chat.response).total_tokens}
         </td>
         <td className="px-6">{chat.workspace?.name}</td>
         <td

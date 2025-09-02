@@ -30,7 +30,12 @@ export default function GeneralInfo({ slug }) {
     e.preventDefault();
     const data = {};
     const form = new FormData(formEl.current);
-    for (var [key, value] of form.entries()) data[key] = castToType(key, value);
+    for (var [key, value] of form.entries()) {
+      data[key] = castToType(key, value);
+    }
+
+    data.agentic = data.agentic || "no";
+
     const { workspace: updatedWorkspace, message } = await Workspace.update(
       workspace.slug,
       data
@@ -65,7 +70,7 @@ export default function GeneralInfo({ slug }) {
           setHasChanges={setHasChanges}
         />
         <WorkspaceIsAgentic
-          key={workspace.slug}
+          key={`agentic_${workspace.slug}`}
           workspace={workspace}
           setHasChanges={setHasChanges}
         />

@@ -106,12 +106,16 @@ class OpenAIProvider extends Provider {
             arguments: functionArgs,
           },
           cost,
+          metrics: this.transformMetrics(response.usage),
+          model: this.model,
         };
       }
 
       return {
         result: completion.content,
         cost,
+        metrics: this.transformMetrics(response.usage),
+        model: this.model,
       };
     } catch (error) {
       // If invalid Auth error we need to abort because no amount of waiting
@@ -153,6 +157,14 @@ class OpenAIProvider extends Provider {
     const outputCost = (usage.completion_tokens / 1000) * costPerToken.output;
 
     return inputCost + outputCost;
+  }
+
+  transformMetrics(usage) {
+    return {
+      completion_tokens: usage.completion_tokens,
+      prompt_tokens: usage.input_tokens,
+      total_tokens: usage.total_tokens,
+    };
   }
 }
 
